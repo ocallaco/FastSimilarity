@@ -34,7 +34,7 @@ local indexes = torch.IntTensor(10)
 local distances = torch.FloatTensor(10)
 
 for i=N,N-50,-1 do
-   local vector = similarityTable.public_vectors[i] * similarityTable.public_multipliers[i]
+   local vector = similarityTable.public_veccors[i]:float() * similarityTable.public_multipliers[i]
    
    clib.findClosest(env, torch.data(env, similarityTable.public_vectors), torch.data(similarityTable.public_multipliers), torch.data(vector), torch.data(indexes), torch.data(distances))
 
