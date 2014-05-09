@@ -28,15 +28,18 @@ local N = similarityTable.public_vectors:size(1)
 local dim = similarityTable.public_vectors:size(2)
 local k = 10
 
+print("starting")
 local env = clib.init(k, N, dim)
+print("initialized")
 
 local indexes = torch.IntTensor(10)
 local distances = torch.FloatTensor(10)
 
+print("running")
 for i=N,N-50,-1 do
    local vector = similarityTable.public_vectors[i] * similarityTable.public_multipliers[i]
    
-   clib.findClosest(env, torch.data(env, similarityTable.public_vectors), torch.data(similarityTable.public_multipliers), torch.data(vector), torch.data(indexes), torch.data(distances))
+   clib.findClosest(env, torch.data(similarityTable.public_vectors), torch.data(similarityTable.public_multipliers), torch.data(vector), torch.data(indexes), torch.data(distances))
 
    for j=1,10 do
       print(indexes[j],distances[j])
