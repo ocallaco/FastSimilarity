@@ -2,9 +2,15 @@
 #include <float.h>
 #include <stdlib.h>
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
+
 #define abs(x)  ( ( (x) < 0) ? -(x) : (x) )
 
 Environment *init(int k, int N, int dim){
+
     Environment *environment = malloc(sizeof(Environment));
     environment->k = k;
     environment->N = N;
@@ -55,22 +61,69 @@ static inline void clearEnv(Environment *environment){
 void findClosest(Environment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
-    clearEnv(environment);
-    int dim = environment->dim;
+#ifdef _OPENMP
+    long maxthreads = omp_get_max_threads();
+    Environment *environments[maxthreads]; 
 
-    for(int i = 0; i < environment->N; i++){
-        float distance = 0;
-        int startIndex = i * dim;
-        for(int j = 0; j < dim; j++){
-            distance += abs(matchingSet[startIndex + j] - queryVector[j]);
-        }
-        addEntry(environment, i, distance);
+    //set up data store for each thread
+    for(int i = 0; i < maxthreads; i++){
+        environments[i] = init(environment->k, environment->N, environment->dim)
     }
 
+#else
+    long maxthreads = 1;
+    Environment *environments[1] 
+    environments[0] = environment;
+#endif
+
+#pragma omp parallel
+    {
+        // partial gradients
+#ifdef _OPENMP
+        long id = omp_get_thread_num();
+#else
+        long id = 0;
+#endif
+
+        Environment *env = environments[id]
+
+        clearEnv(env);
+        int dim = env->dim;
+
+#pragma omp for
+        for(int i = 0; i < env->N; i++){
+            float distance = 0;
+            int startIndex = i * dim;
+            for(int j = 0; j < dim; j++){
+                distance += abs(matchingSet[startIndex + j] - queryVector[j]);
+            }
+            addEntry(env, i, distance);
+        }
+
+        // reduce
+#pragma omp barrier
+        if (id==0) {
+#ifdef _OPENMP
+            long nthreads = omp_get_num_threads();
+#else
+            long nthreads = 1;
+#endif
+            if(nthreads > 1){
+                for (int x = 0; x < nthreads; x++) {
+                    for(int y = 0; y < env->k; y++){
+                        addEntry(environment, environments[x]->indexes[y], environments[x]->distances[y])
+                    }
+                    cleanup(environments[x])
+                }
+            }
+        }
+    }
+            
     for(int i = 0; i < environment->k; i++){
         responseSet[i] = environment->indexes[i] + 1;
         responseDists[i] = environment->distances[i];
     }
+
 }
 
 
