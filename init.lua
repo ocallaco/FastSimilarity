@@ -1,6 +1,8 @@
 local ffi = require "ffi"
 require 'torchffi'
 
+torch.setdefaulttensortype('torch.FloatTensor')
+
 local async = require 'async'
 
 ffi.cdef
@@ -9,7 +11,9 @@ ffi.cdef
 
     Environment *init(int k, int N, int dim);
 
-    int findClosest(Environment *environment, unsigned char *matchingSet, float *multipliers, float *queryVector, int *responseSet, float *responseDists);
+    int findClosest(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+    
+    int findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, float *queryVector, int *responseSet, float *responseDists);
 
     void cleanup(Environment *environment);
 ]]
@@ -57,7 +61,7 @@ local distances = torch.FloatTensor(10)
 
 print("running")
 for i=N,N-10,-1 do
-   local vector = similarityTable.public_vectors[i]:float() * similarityTable.public_multipliers[i]
+   local vector = dataTensor
 
    local sttime = async.hrtime()
    clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
