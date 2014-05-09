@@ -1,6 +1,7 @@
 #include "similarity.h"
 #include <float.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -166,12 +167,6 @@ void findClosest2(Environment *environment, float *matchingSet,
 
 #pragma omp barrier
             if (id==0) {
-#ifdef _OPENMP
-                long nthreads = omp_get_num_threads();
-#else
-                long nthreads = 1;
-#endif
-
                 float distance = distances[0];
                 for(int j = 1; j < maxthreads; j++){
                     distance += distances[j];

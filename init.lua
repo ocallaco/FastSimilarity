@@ -58,24 +58,27 @@ print("starting")
 local env = clib.init(k, N, dim)
 print("initialized")
 
-local indexes = torch.IntTensor(10)
-local distances = torch.FloatTensor(10)
+local indexes1 = torch.IntTensor(10)
+local distances1 = torch.FloatTensor(10)
+
+local indexes2 = torch.IntTensor(10)
+local distances2 = torch.FloatTensor(10)
 
 print("running")
 for i=N,N-10,-1 do
    local vector = dataTensor[i]
 
    local sttime = async.hrtime()
-   clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
+   clib.findClosest2(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes2), torch.data(distances2))
    local midtime = async.hrtime()
-   clib.findClosest2(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
+   clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes1), torch.data(distances1))
 
    local endtime = async.hrtime()
 
    print("COMPLETED", midtime - sttime, endtime - midtime)
 
    for j=1,10 do
-      print(indexes[j],distances[j])
+      print(indexes1[j],distances1[j], indexes2[j], distances2[j], indexes1[j] == indexes2[j])
    end
 end
 
