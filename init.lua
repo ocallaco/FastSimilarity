@@ -13,7 +13,7 @@ ffi.cdef
 ]]
 
 print("loading table")
-local similarityTable = torch.load('./SimilarityTable.1.m')
+local similarityTable = torch.load('./data/SimilarityTable.1.m')
 print("done")
 
 local clib = ffi.load("./fastsimilarity.so")
