@@ -69,16 +69,14 @@ for i=N,N-10,-1 do
    local vector = dataTensor[i]
 
    local sttime = async.hrtime()
-   clib.findClosest2(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes2), torch.data(distances2))
-   local midtime = async.hrtime()
    clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes1), torch.data(distances1))
 
    local endtime = async.hrtime()
 
-   print("COMPLETED", midtime - sttime, endtime - midtime)
+   print("COMPLETED", endtime - sttime)
 
    for j=1,10 do
-      print(indexes1[j],distances1[j], indexes2[j], distances2[j], indexes1[j] == indexes2[j])
+      print(indexes1[j],distances1[j])
    end
 end
 
