@@ -12,8 +12,14 @@ ffi.cdef
     void cleanup(Environment *environment);
 ]]
 
+-- options
+local opt = lapp([[
+Starts a daemon by type
+-f, --file (default './data/SimilarityTable.1.m')
+]])
+
 print("loading table")
-local similarityTable = torch.load('./data/SimilarityTable.1.m')
+local similarityTable = torch.load(opt.file)
 print("done")
 
 local clib = ffi.load("./fastsimilarity.so")
