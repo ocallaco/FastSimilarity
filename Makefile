@@ -1,6 +1,6 @@
 CC=gcc
 #INCLUDE=
-CFLAGS=-Wall -fPIC -O3
+CFLAGS=-Wall -fPIC -O3 -std=c99
 
 all: fastsimilarity.so
 
