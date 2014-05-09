@@ -1,6 +1,7 @@
 #include "similarity.h"
 #include <float.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define abs(x)  ( ( (x) < 0) ? -(x) : (x) )
 
@@ -54,13 +55,15 @@ static inline void clearEnv(Environment *environment){
 
 void findClosest(Environment *environment, unsigned char *matchingSet, float *multipliers, 
                                 float *queryVector, int *responseSet, float *responseDists){
+
+    printf("ENVIRONMENT %d", environment->k);
     clearEnv(environment);
     int dim = environment->dim;
 
     for(int i = 0; i < environment->N; i++){
         float distance = 0;
         for(int j = 0; j < dim; j++){
-            distance += abs((matchingSet[(i * dim) + j] * multipliers[i]) - queryVector[j]);
+            distance += abs(((float)(matchingSet[(i * dim) + j]) * multipliers[i]) - queryVector[j]);
         }
         addEntry(environment, i, distance);
     }
