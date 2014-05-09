@@ -11,9 +11,11 @@ ffi.cdef
 
     Environment *init(int k, int N, int dim);
 
-    int findClosest(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
-    
-    int findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, float *queryVector, int *responseSet, float *responseDists);
+    void findClosest(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+   
+    void findClosest2(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+
+    void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, float *queryVector, int *responseSet, float *responseDists);
 
     void cleanup(Environment *environment);
 ]]
@@ -65,10 +67,12 @@ for i=N,N-10,-1 do
 
    local sttime = async.hrtime()
    clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
+   local midtime = async.hrtime()
+   clib.findClosest2(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
 
    local endtime = async.hrtime()
 
-   print("COMPLETED", endtime - sttime)
+   print("COMPLETED", midtime - sttime, endtime - midtime)
 
    for j=1,10 do
       print(indexes[j],distances[j])

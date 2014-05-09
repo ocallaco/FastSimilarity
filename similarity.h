@@ -11,6 +11,8 @@ Environment *init(int k, int N, int dim);
 
 void findClosest(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
 
+void findClosest2(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+
 void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, 
                                 float *queryVector, int *responseSet, float *responseDists);
 

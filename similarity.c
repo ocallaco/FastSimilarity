@@ -128,6 +128,70 @@ void findClosest(Environment *environment, float *matchingSet,
 }
 
 
+void findClosest2(Environment *environment, float *matchingSet, 
+                                float *queryVector, int *responseSet, float *responseDists){
+
+#ifdef _OPENMP
+    long maxthreads = omp_get_max_threads();
+#else
+    long maxthreads = 1;
+#endif
+
+
+    clearEnv(environment);
+    int dim = environment->dim;
+
+    for(int i = 0; i < environment->N; i++){
+        float distances[maxthreads];
+
+        for(int j = 0; j < maxthreads; j++){
+            distances[j] = 0;
+        }
+        int startIndex = i * dim;
+
+#pragma omp parallel
+        {
+            // partial gradients
+#ifdef _OPENMP
+            long id = omp_get_thread_num();
+#else
+            long id = 0;
+#endif
+
+#pragma omp for
+            for(int j = 0; j < dim; j++){
+                distances[id] += abs(matchingSet[startIndex + j] - queryVector[j]);
+            }
+
+
+#pragma omp barrier
+            if (id==0) {
+#ifdef _OPENMP
+                long nthreads = omp_get_num_threads();
+#else
+                long nthreads = 1;
+#endif
+
+                float distance = distances[0];
+                for(int j = 1; j < maxthreads; j++){
+                    distance += distances[j];
+                }
+
+                addEntry(environment, i, distance);
+            }
+        }
+    }
+
+    for(int i = 0; i < environment->k; i++){
+        responseSet[i] = environment->indexes[i] + 1;
+        responseDists[i] = environment->distances[i];
+    }
+
+}
+
+
+
+
 
 void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, 
                                 float *queryVector, int *responseSet, float *responseDists){
