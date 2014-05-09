@@ -66,8 +66,11 @@ void findClosest(Environment *environment, float *matchingSet,
     Environment *environments[maxthreads]; 
 
     //set up data store for each thread
-    for(int i = 0; i < maxthreads; i++){
-        environments[i] = init(environment->k, environment->N, environment->dim)
+    environments[0] = environment;
+
+    for(int i = 1; i < maxthreads; i++){
+        environments[i] = init(environment->k, environment->N, environment->dim);
+        clearEnv(environments[i]);
     }
 
 #else
@@ -85,7 +88,7 @@ void findClosest(Environment *environment, float *matchingSet,
         long id = 0;
 #endif
 
-        Environment *env = environments[id]
+        Environment *env = environments[id];
 
         clearEnv(env);
         int dim = env->dim;
@@ -108,13 +111,11 @@ void findClosest(Environment *environment, float *matchingSet,
 #else
             long nthreads = 1;
 #endif
-            if(nthreads > 1){
-                for (int x = 0; x < nthreads; x++) {
-                    for(int y = 0; y < env->k; y++){
-                        addEntry(environment, environments[x]->indexes[y], environments[x]->distances[y])
-                    }
-                    cleanup(environments[x])
+            for (int x = 1; x < nthreads; x++) {
+                for(int y = 0; y < env->k; y++){
+                    addEntry(environment, environments[x]->indexes[y], environments[x]->distances[y]);
                 }
+                cleanup(environments[x]);
             }
         }
     }

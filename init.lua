@@ -61,17 +61,17 @@ local distances = torch.FloatTensor(10)
 
 print("running")
 for i=N,N-10,-1 do
-   local vector = dataTensor
+   local vector = dataTensor[i]
 
    local sttime = async.hrtime()
    clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
 
    local endtime = async.hrtime()
 
-   print(endtime - sttime)
+   print("COMPLETED", endtime - sttime)
 
---   for j=1,10 do
---      print(indexes[j],distances[j])
---   end
+   for j=1,10 do
+      print(indexes[j],distances[j])
+   end
 end
 
