@@ -42,11 +42,12 @@ for i=N,N-10,-1 do
    local vector = similarityTable.public_vectors[i]:float() * similarityTable.public_multipliers[i]
 
    local sttime = async.hrtime()
-   local x = clib.findClosest(env, torch.data(similarityTable.public_vectors), torch.data(similarityTable.public_multipliers), torch.data(vector), torch.data(indexes), torch.data(distances))
+   clib.findClosest(env, torch.data(similarityTable.public_vectors), torch.data(similarityTable.public_multipliers), torch.data(vector), torch.data(indexes), torch.data(distances))
 
    local endtime = async.hrtime()
 
-   print(x, endtime - sttime)
+   print(endtime - sttime)
+
 --   for j=1,10 do
 --      print(indexes[j],distances[j])
 --   end
