@@ -7,7 +7,22 @@
 #include "omp.h"
 #endif
 
+#ifdef USE_SSE2
+#include <emmintrin.h>
+#endif
+
+#ifdef USE_SSE3
+#include <pmmintrin.h>
+#endif
+
+#ifdef USE_SSSE3
+#include <tmmintrin.h>
+#endif
+
+#if defined (USE_SSE4_2) || defined (USE_SSE4_1)
 #include <smmintrin.h>
+#endif
+
 
 #define abs(x)  ( ( (x) < 0) ? -(x) : (x) )
 
