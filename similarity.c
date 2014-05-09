@@ -52,7 +52,7 @@ static inline void clearEnv(Environment *environment){
     }
 }
 
-void findClosest(Environment *environment, unsigned char *matchingSet, float *multipliers, 
+void findClosest(Environment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
     clearEnv(environment);
@@ -60,8 +60,32 @@ void findClosest(Environment *environment, unsigned char *matchingSet, float *mu
 
     for(int i = 0; i < environment->N; i++){
         float distance = 0;
+        int startIndex = i * dim;
         for(int j = 0; j < dim; j++){
-            distance += abs(((float)(matchingSet[(i * dim) + j]) * multipliers[i]) - queryVector[j]);
+            distance += abs(matchingSet[startIndex + j] - queryVector[j]);
+        }
+        addEntry(environment, i, distance);
+    }
+
+    for(int i = 0; i < environment->k; i++){
+        responseSet[i] = environment->indexes[i] + 1;
+        responseDists[i] = environment->distances[i];
+    }
+}
+
+
+
+void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, 
+                                float *queryVector, int *responseSet, float *responseDists){
+
+    clearEnv(environment);
+    int dim = environment->dim;
+
+    for(int i = 0; i < environment->N; i++){
+        float distance = 0;
+        int startIndex = i * dim;
+        for(int j = 0; j < dim; j++){
+            distance += abs(((float)(matchingSet[startIndex + j]) * multipliers[i]) - queryVector[j]);
         }
         addEntry(environment, i, distance);
     }

@@ -20,6 +20,22 @@ Starts a daemon by type
 -f, --file (default './data/SimilarityTable.1.m')
 ]])
 
+
+local getDataTensor = function(similarityTable)
+   local N = similarityTable.public_vectors:size(1)
+   local dim = similarityTable.public_vectors:size(2)
+
+   local data_tensor = torch.FloatTensor(dim * N):copy(similarityTable.public_vectors):resize(similarityTable.public_vectors:size())
+   local multipliers = torch.Tensor(similarityTable.public_multipliers)
+
+   multipliers:resize(N,1)
+
+   data_tensor:cmul(multipliers:expandAs(data_tensor))
+   
+   return data_tensor, similarityTable
+end
+
+
 print("loading table")
 local similarityTable = torch.load(opt.file)
 print("done")
@@ -29,6 +45,8 @@ local clib = ffi.load("./fastsimilarity.so")
 local N = similarityTable.public_vectors:size(1)
 local dim = similarityTable.public_vectors:size(2)
 local k = 10
+
+local dataTensor = getDataTensor(similarityTable)
 
 print("starting")
 local env = clib.init(k, N, dim)
@@ -42,7 +60,7 @@ for i=N,N-10,-1 do
    local vector = similarityTable.public_vectors[i]:float() * similarityTable.public_multipliers[i]
 
    local sttime = async.hrtime()
-   clib.findClosest(env, torch.data(similarityTable.public_vectors), torch.data(similarityTable.public_multipliers), torch.data(vector), torch.data(indexes), torch.data(distances))
+   clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
 
    local endtime = async.hrtime()
 
