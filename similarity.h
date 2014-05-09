@@ -13,6 +13,8 @@ void findClosest(Environment *environment, float *matchingSet, float *queryVecto
 
 void findClosest2(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
 
+void findClosest3(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+
 void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, 
                                 float *queryVector, int *responseSet, float *responseDists);
 

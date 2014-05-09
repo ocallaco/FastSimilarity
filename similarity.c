@@ -7,8 +7,26 @@
 #include "omp.h"
 #endif
 
+#include <smmintrin.h>
 
 #define abs(x)  ( ( (x) < 0) ? -(x) : (x) )
+
+
+#define THFloatVector_l1(x, y, n) {                         \
+    __m128d vsum = _mm_set1_ps(0.0);                        \
+    long kk;                                                \
+    for (kk = 0; kk < (n); kk += 2){                        \
+    __m128d va = _mm_load_ps(&((x)[kk]));                   \
+    __m128d vb = _mm_load_ps(&((y)[kk]));                   \
+    __m128d vdiff = _mm_sub_ps(va, vb);                     \
+    __m128d vnegdiff = mm_sub_ps(_mm_set1_pd(0.0), vdiff);  \
+    __m128d vabsdiff = _mm_max_ps(vdiff, vnegdiff);         \
+    vsum = _mm_add_ps(vsum, vabsdiff);                      \
+    }                                                       \
+    return vsum;                                            \
+}
+
+
 
 Environment *init(int k, int N, int dim){
 
@@ -59,7 +77,77 @@ static inline void clearEnv(Environment *environment){
     }
 }
 
+
+// optimized with SSE
 void findClosest(Environment *environment, float *matchingSet, 
+                                float *queryVector, int *responseSet, float *responseDists){
+
+#ifdef _OPENMP
+    long maxthreads = omp_get_max_threads();
+    Environment *environments[maxthreads]; 
+
+    //set up data store for each thread
+    environments[0] = environment;
+
+    for(int i = 1; i < maxthreads; i++){
+        environments[i] = init(environment->k, environment->N, environment->dim);
+        clearEnv(environments[i]);
+    }
+
+#else
+    long maxthreads = 1;
+    Environment *environments[1] 
+    environments[0] = environment;
+#endif
+
+#pragma omp parallel
+    {
+        // partial gradients
+#ifdef _OPENMP
+        long id = omp_get_thread_num();
+#else
+        long id = 0;
+#endif
+
+        Environment *env = environments[id];
+
+        clearEnv(env);
+        int dim = env->dim;
+
+#pragma omp for
+        for(int i = 0; i < env->N; i++){
+            int startIndex = i * dim;
+            float distance = THFloatVector_l1(&(matchingSet[startIndex]), queryVector);
+            addEntry(env, i, distance);
+        }
+
+        // reduce
+#pragma omp barrier
+        if (id==0) {
+#ifdef _OPENMP
+            long nthreads = omp_get_num_threads();
+#else
+            long nthreads = 1;
+#endif
+            for (int x = 1; x < nthreads; x++) {
+                for(int y = 0; y < env->k; y++){
+                    addEntry(environment, environments[x]->indexes[y], environments[x]->distances[y]);
+                }
+                cleanup(environments[x]);
+            }
+        }
+    }
+            
+    for(int i = 0; i < environment->k; i++){
+        responseSet[i] = environment->indexes[i] + 1;
+        responseDists[i] = environment->distances[i];
+    }
+
+}
+
+
+// not optimized
+void findClosest2(Environment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
 #ifdef _OPENMP
@@ -129,7 +217,8 @@ void findClosest(Environment *environment, float *matchingSet,
 }
 
 
-void findClosest2(Environment *environment, float *matchingSet, 
+// parallel on inner loop -- doesn't go faster
+void findClosest3(Environment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
 #ifdef _OPENMP
