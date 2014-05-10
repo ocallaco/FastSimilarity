@@ -111,8 +111,10 @@ void findClosest(Environment *environment, float *matchingSet,
 
             // SSE STUFF!
             __m128 vsum = _mm_set1_ps(0.0);                        
-            long k;                                              
-            for (k = 0; k < dim; k += 2){                       
+            long k;
+            
+            // I think k should be incrementing should be by 4s, but (possibly due to mem unaligned) it gets the wrong answer unless you do k += 1
+            for (k = 0; k < dim; k += 1){                       
                 __m128 va = _mm_loadu_ps(matchingSet + startIndex + k);
                 __m128 vb = _mm_loadu_ps(queryVector + k);
                 __m128 vdiff = _mm_sub_ps(va, vb);
