@@ -7,38 +7,13 @@
 #include "omp.h"
 #endif
 
-#ifdef USE_SSE2
 #include <emmintrin.h>
-#endif
-
-#ifdef USE_SSE3
-#include <pmmintrin.h>
-#endif
-
-#ifdef USE_SSSE3
-#include <tmmintrin.h>
-#endif
-
-#if defined (USE_SSE4_2) || defined (USE_SSE4_1)
-#include <smmintrin.h>
-#endif
 
 
 #define abs(x)  ( ( (x) < 0) ? -(x) : (x) )
 
 
-#define THFloatVector_l1(x, y, n) {                         \
-    __m128d vsum = _mm_set1_ps(0.0);                        \
-    long kk;                                                \
-    for (kk = 0; kk < (n); kk += 2){                        \
-    __m128d va = _mm_load_ps(&((x)[kk]));                   \
-    __m128d vb = _mm_load_ps(&((y)[kk]));                   \
-    __m128d vdiff = _mm_sub_ps(va, vb);                     \
-    __m128d vnegdiff = mm_sub_ps(_mm_set1_pd(0.0), vdiff);  \
-    __m128d vabsdiff = _mm_max_ps(vdiff, vnegdiff);         \
-    vsum = _mm_add_ps(vsum, vabsdiff);                      \
-    }                                                       \
-    return vsum;                                            \
+#define THFloatVectorDist(x, y, n, ans) {                  \
 }
 
 
@@ -131,9 +106,25 @@ void findClosest(Environment *environment, float *matchingSet,
 
 #pragma omp for
         for(int i = 0; i < env->N; i++){
-            int startIndex = i * dim;
-            float distance = THFloatVector_l1(&(matchingSet[startIndex]), queryVector);
-            addEntry(env, i, distance);
+            long startIndex = (long)(i * dim);
+            float distance[4];
+
+            // SSE STUFF!
+            __m128 vsum = _mm_set1_ps(0.0);                        
+            long k;                                              
+            for (k = 0; k < dim; k += 2){                       
+                __m128 va = _mm_loadu_ps(matchingSet + startIndex + k);
+                __m128 vb = _mm_loadu_ps(queryVector + k);
+                __m128 vdiff = _mm_sub_ps(va, vb);
+                __m128 vnegdiff = _mm_sub_ps(_mm_set1_ps(0.0), vdiff);
+                __m128 vabsdiff = _mm_max_ps(vdiff, vnegdiff);
+                vsum = _mm_add_ps(vsum, vabsdiff);
+            }
+            _mm_storeu_ps(distance,vsum); 
+
+            // ALL DONE!
+            //
+            addEntry(env, i, distance[0]);
         }
 
         // reduce
