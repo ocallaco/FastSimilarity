@@ -2,7 +2,7 @@ CC=gcc
 #INCLUDE=
 CFLAGS=-Wall -fPIC -O3 -std=c99 -fopenmp
 
-all: fastsimilarity.so
+all: libfastsimilarity.so
 
 temp:  
 	mkdir temp
@@ -10,9 +10,9 @@ temp:
 temp/fastsimilarity.o: temp
 	$(CC) -c similarity.c -o $@ ${CFLAGS} ${INCLUDE}
 
-fastsimilarity.so: temp/fastsimilarity.o 
+libfastsimilarity.so: temp/fastsimilarity.o 
 	$(CC) -shared -o $@ temp/*.o ${INCLUDE}
 
 clean:
 	rm -rf temp
-	rm fastsimilarity.so
+	rm libfastsimilarity.so

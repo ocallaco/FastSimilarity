@@ -22,21 +22,11 @@ ffi.cdef
     void cleanup(Environment *environment);
 ]]
 
--- options
-local opt = lapp([[
-Starts a daemon by type
--f, --file (default './data/SimilarityTable.1.m')
-]])
-
-
 local similarity = {}
 
-similarity.init = function(dataTensor, k)
+similarity.init = function(dataTensor, k, N, dim)
 
-   local clib = ffi.load("./fastsimilarity.so")
-
-   local N = dataTensor:size(1)
-   local dim = dataTensor:size(2)
+   local clib = ffi.load("fastsimilarity")
 
    local env = clib.init(k, N, dim)
 
