@@ -40,23 +40,25 @@ similarity.init = function(dataTensor, k)
 
    local env = clib.init(k, N, dim)
 
-   local indexes = torch.IntTensor(10)
-   local distances = torch.FloatTensor(10)
+   local indexes = torch.IntTensor(k)
+   local distances = torch.FloatTensor(k)
 
    local finder = {}
 
    finder.findClosest = function(queryVector)
-      clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
+      clib.findClosest(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
       local response = {}
       for i=1,k do
          if indexes[i] < 0 or indexes[i] > N then break end
 
          table.insert(response, {indexes[i], distances[i]})
-
-         return response
       end
+       
+      return response
    end
 
    return finder
 end
+
+return similarity
 

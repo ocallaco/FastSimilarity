@@ -52,8 +52,8 @@ for i=N,N-10,-1 do
 
    print("COMPLETED", endtime - sttime)
 
-   for j=1,10 do
-      print(response[j][1], response[j][2])
+   for j,response in ipairs(response) do 
+      print(response[1], response[2])
    end
 end
 
