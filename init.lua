@@ -29,58 +29,34 @@ Starts a daemon by type
 ]])
 
 
-local getDataTensor = function(similarityTable)
-   local N = similarityTable.public_vectors:size(1)
-   local dim = similarityTable.public_vectors:size(2)
+local similarity = {}
 
-   local data_tensor = torch.FloatTensor(dim * N):copy(similarityTable.public_vectors):resize(similarityTable.public_vectors:size())
-   local multipliers = torch.Tensor(similarityTable.public_multipliers)
+similarity.init = function(dataTensor, k)
 
-   multipliers:resize(N,1)
+   local clib = ffi.load("./fastsimilarity.so")
 
-   data_tensor:cmul(multipliers:expandAs(data_tensor))
-   
-   return data_tensor, similarityTable
-end
+   local N = dataTensor:size(1)
+   local dim = dataTensor:size(2)
 
+   local env = clib.init(k, N, dim)
 
-print("loading table")
-local similarityTable = torch.load(opt.file)
-print("done")
+   local indexes = torch.IntTensor(10)
+   local distances = torch.FloatTensor(10)
 
-local clib = ffi.load("./fastsimilarity.so")
+   local finder = {}
 
-local N = similarityTable.public_vectors:size(1)
-local dim = similarityTable.public_vectors:size(2)
-local k = 10
+   finder.findClosest = function(queryVector)
+      clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
 
-local dataTensor = getDataTensor(similarityTable)
+         table.insert(response, {indexes[i], distances[i]})
 
-print("starting")
-local env = clib.init(k, N, dim)
-print("initialized")
-
-local indexes1 = torch.IntTensor(10)
-local distances1 = torch.FloatTensor(10)
-
-local indexes2 = torch.IntTensor(10)
-local distances2 = torch.FloatTensor(10)
-
-print("running")
-for i=N,N-10,-1 do
-   local vector = dataTensor[i]
-
-   local sttime = async.hrtime()
-   clib.findClosest(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes1), torch.data(distances1))
-
-   local endtime = async.hrtime()
---   clib.findClosest2(env, torch.data(dataTensor), torch.data(vector), torch.data(indexes2), torch.data(distances2))
-
-   print("COMPLETED", endtime - sttime)
-
-   for j=1,10 do
---      print(indexes1[j],distances1[j], indexes1[j] == indexes2[j], distances2[j])
-      print(indexes1[j],distances1[j])
+         return response
+      end
    end
+
+   return finder
 end
 
