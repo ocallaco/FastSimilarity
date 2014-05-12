@@ -283,7 +283,7 @@ void findClosest3(Environment *environment, float *matchingSet,
 
 
 void findClosestInt(Environment *environment, int *matchingSet, 
-                                int *queryVector, int *responseSet, int *responseDists){
+                                int *queryVector, int *responseSet, float *responseDists){
 
 #ifdef _OPENMP
     long maxthreads = omp_get_max_threads();
@@ -322,7 +322,7 @@ void findClosestInt(Environment *environment, int *matchingSet,
             long startIndex = (long)(i * dim);
             int distance = 0;
             for(int j = 0; j < dim; j++){
-                distance += abs(matchingSet[startIndex + j] - queryVector[j])
+                distance += abs(matchingSet[startIndex + j] - queryVector[j]);
             }
 
             addEntry(env, i, (float)distance);

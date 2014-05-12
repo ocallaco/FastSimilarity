@@ -18,7 +18,7 @@ local getDataTensor = function(similarityTable)
    local dim = similarityTable.public_vectors:size(2)
 
    local data_tensor = torch.IntTensor(dim * N):copy(similarityTable.public_vectors):resize(similarityTable.public_vectors:size())
-   local multipliers = torch.Tensor(similarityTable.public_multipliers * 100)
+   local multipliers = torch.IntTensor((similarityTable.public_multipliers * 100):int())
 
    multipliers:resize(N,1)
 
@@ -55,7 +55,7 @@ for i=N,N-10,-1 do
    print("COMPLETED", midtime - sttime, endtime - midtime)
 
    for j,response in ipairs(responses) do 
-      print(response[1], response[2], response[1] == responses2[j][1])
+      print(response[1], response[2]) --, response[1] == responses2[j][1])
    end
 end
 
