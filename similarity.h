@@ -35,5 +35,7 @@ IntEnvironment *intInit(int k, int N, int dim);
 
 void findClosestInt(IntEnvironment *environment, int *matchingSet, int *queryVector, int *responseSet, int *responseDists);
 
+void findClosestInt2(IntEnvironment *environment, int *matchingSet, int *queryVector, int *responseSet, int *responseDists);
+
 void intCleanup(IntEnvironment *environment);
 
