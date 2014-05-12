@@ -7,10 +7,13 @@ all: libfastsimilarity.so
 temp:  
 	mkdir temp
 
-temp/fastsimilarity.o: temp
-	$(CC) -c similarity.c -o $@ ${CFLAGS} ${INCLUDE}
+temp/floatsimilarity.o: temp
+	$(CC) -c floatSimilarity.c -o $@ ${CFLAGS} ${INCLUDE}
 
-libfastsimilarity.so: temp/fastsimilarity.o 
+temp/intsimilarity.o: temp
+	$(CC) -c  intSimilarity.c -o $@ ${CFLAGS} ${INCLUDE}
+
+libfastsimilarity.so: temp/floatsimilarity.o temp/intsimilarity.o
 	$(CC) -shared -o $@ temp/*.o ${INCLUDE}
 
 clean:

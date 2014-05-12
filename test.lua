@@ -13,7 +13,22 @@ Starts a daemon by type
 ]])
 
 
-local getDataTensor = function(similarityTable)
+local getFloatDataTensor = function(similarityTable)
+   local N = similarityTable.public_vectors:size(1)
+   local dim = similarityTable.public_vectors:size(2)
+
+   local data_tensor = torch.FloatTensor(dim * N):copy(similarityTable.public_vectors):resize(similarityTable.public_vectors:size())
+   local multipliers = torch.Tensor(similarityTable.public_multipliers)
+
+   multipliers:resize(N,1)
+
+   data_tensor:cmul(multipliers:expandAs(data_tensor))
+   
+   return data_tensor, similarityTable
+end
+
+
+local getIntDataTensor = function(similarityTable)
    local N = similarityTable.public_vectors:size(1)
    local dim = similarityTable.public_vectors:size(2)
 
@@ -36,10 +51,10 @@ local N = similarityTable.public_vectors:size(1)
 local dim = similarityTable.public_vectors:size(2)
 local k = 10
 
-local dataTensor = getDataTensor(similarityTable)
+local dataTensor = getIntDataTensor(similarityTable)
 
 print("starting")
-local simFinder = similarity.init(dataTensor, k, N, dim)
+local simFinder = similarity.intinit(dataTensor, k, N, dim)
 print("initialized")
 
 print("running")
