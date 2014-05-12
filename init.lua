@@ -72,6 +72,18 @@ similarity.init = function(dataTensor, k, N, dim)
       return response
    end
 
+   finder.findClosestInt = function(queryVector)
+      clib.findClosestInt(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+
    return finder
 end
 

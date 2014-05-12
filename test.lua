@@ -17,8 +17,8 @@ local getDataTensor = function(similarityTable)
    local N = similarityTable.public_vectors:size(1)
    local dim = similarityTable.public_vectors:size(2)
 
-   local data_tensor = torch.FloatTensor(dim * N):copy(similarityTable.public_vectors):resize(similarityTable.public_vectors:size())
-   local multipliers = torch.Tensor(similarityTable.public_multipliers)
+   local data_tensor = torch.IntTensor(dim * N):copy(similarityTable.public_vectors):resize(similarityTable.public_vectors:size())
+   local multipliers = torch.Tensor(similarityTable.public_multipliers * 100)
 
    multipliers:resize(N,1)
 
@@ -47,9 +47,9 @@ for i=N,N-10,-1 do
    local vector = dataTensor[i]
 
    local sttime = async.hrtime()
-   local responses = simFinder.findClosest(vector)
+   local responses = simFinder.findClosestInt(vector)
    local midtime = async.hrtime()
-   local responses2 = simFinder.findClosest2(vector)
+--   local responses2 = simFinder.findClosest2(vector)
    local endtime = async.hrtime()
 
    print("COMPLETED", midtime - sttime, endtime - midtime)
