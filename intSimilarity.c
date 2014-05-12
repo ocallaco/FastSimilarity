@@ -115,7 +115,11 @@ void findClosestInt(IntEnvironment *environment, int *matchingSet,
                 __m128i vb = _mm_loadu_si128((__m128i*)&(queryVector [k]));
                 __m128i vdiff = _mm_sub_epi32(va, vb);
                 __m128i vnegdiff = _mm_sub_epi32(zero, vdiff);
-                __m128i vabsdiff = _mm_max_epi32(vdiff, vnegdiff);
+                __m128i vcompar1 = _mm_cmpgt_epi32(vdiff, vnegdiff);
+                __m128i vcompar2 = _mm_cmpgt_epi32(vnegdiff, vdiff);
+                __m128i vabsdiff1 = _mm_and_si128(vdiff, vcompar1);
+                __m128i vabsdiff2 = _mm_and_si128(vnegdiff, vcompar2);
+                __m128i vabsdiff2 = _mm_or_si128(vabsdiff1, vabsdiff2);
                 vsum = _mm_add_epi32(vsum, vabsdiff);
             }
             _mm_storeu_si128(distance,vsum); 
