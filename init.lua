@@ -43,7 +43,32 @@ similarity.init = function(dataTensor, k, N, dim)
 
          table.insert(response, {indexes[i], distances[i]})
       end
-       
+
+      return response
+   end
+
+
+   finder.findClosest2 = function(queryVector)
+      clib.findClosest2(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+   
+   finder.findClosest3 = function(queryVector)
+      clib.findClosest3(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
       return response
    end
 
