@@ -13,14 +13,10 @@
 #define abs(x)  ( ( (x) < 0) ? -(x) : (x) )
 
 
-#define THFloatVectorDist(x, y, n, ans) {                  \
-}
 
+FloatEnvironment *floatInit(int k, int N, int dim){
 
-
-Environment *init(int k, int N, int dim){
-
-    Environment *environment = malloc(sizeof(Environment));
+    FloatEnvironment *environment = malloc(sizeof(FloatEnvironment));
     environment->k = k;
     environment->N = N;
     environment->dim = dim;
@@ -30,7 +26,7 @@ Environment *init(int k, int N, int dim){
     return environment;
 }
 
-static inline void addEntry(Environment *environment, int index, float distance){
+static inline void addEntry(FloatEnvironment *environment, int index, float distance){
     int i = 0;
     int tempIndex, newIndex = -1;
     float tempDistance, newDistance = FLT_MAX;
@@ -60,7 +56,7 @@ static inline void addEntry(Environment *environment, int index, float distance)
     }
 }
 
-static inline void clearEnv(Environment *environment){
+static inline void clearEnv(FloatEnvironment *environment){
     for(int i = 0; i < environment->k; i++){
         environment->indexes[i] = -1;
         environment->distances[i] = FLT_MAX;
@@ -69,24 +65,24 @@ static inline void clearEnv(Environment *environment){
 
 
 // optimized with SSE
-void findClosest(Environment *environment, float *matchingSet, 
+void findClosestFloat(FloatEnvironment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
 #ifdef _OPENMP
     long maxthreads = omp_get_max_threads();
-    Environment *environments[maxthreads]; 
+    FloatEnvironment *environments[maxthreads]; 
 
     //set up data store for each thread
     environments[0] = environment;
 
     for(int i = 1; i < maxthreads; i++){
-        environments[i] = init(environment->k, environment->N, environment->dim);
+        environments[i] = floatInit(environment->k, environment->N, environment->dim);
         clearEnv(environments[i]);
     }
 
 #else
     long maxthreads = 1;
-    Environment *environments[1] 
+    FloatEnvironment *environments[1]; 
     environments[0] = environment;
 #endif
 
@@ -99,7 +95,7 @@ void findClosest(Environment *environment, float *matchingSet,
         long id = 0;
 #endif
 
-        Environment *env = environments[id];
+        FloatEnvironment *env = environments[id];
 
         clearEnv(env);
         int dim = env->dim;
@@ -114,7 +110,7 @@ void findClosest(Environment *environment, float *matchingSet,
             long k;
             
             // I think k should be incrementing should be by 4s, but (possibly due to mem unaligned) it gets the wrong answer unless you do k += 1
-            for (k = 0; k < dim; k += 1){                       
+            for (k = 0; k < dim; k += 4){                       
                 __m128 va = _mm_loadu_ps(matchingSet + startIndex + k);
                 __m128 vb = _mm_loadu_ps(queryVector + k);
                 __m128 vdiff = _mm_sub_ps(va, vb);
@@ -126,7 +122,7 @@ void findClosest(Environment *environment, float *matchingSet,
 
             // ALL DONE!
             //
-            addEntry(env, i, distance[0]);
+            addEntry(env, i, distance[0] + distance[1] + distance[2] + distance[3]);
         }
 
         // reduce
@@ -141,7 +137,7 @@ void findClosest(Environment *environment, float *matchingSet,
                 for(int y = 0; y < env->k; y++){
                     addEntry(environment, environments[x]->indexes[y], environments[x]->distances[y]);
                 }
-                cleanup(environments[x]);
+                floatCleanup(environments[x]);
             }
         }
     }
@@ -155,24 +151,24 @@ void findClosest(Environment *environment, float *matchingSet,
 
 
 // not optimized
-void findClosest2(Environment *environment, float *matchingSet, 
+void findClosestFloat2(FloatEnvironment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
 #ifdef _OPENMP
     long maxthreads = omp_get_max_threads();
-    Environment *environments[maxthreads]; 
+    FloatEnvironment *environments[maxthreads]; 
 
     //set up data store for each thread
     environments[0] = environment;
 
     for(int i = 1; i < maxthreads; i++){
-        environments[i] = init(environment->k, environment->N, environment->dim);
+        environments[i] = floatInit(environment->k, environment->N, environment->dim);
         clearEnv(environments[i]);
     }
 
 #else
     long maxthreads = 1;
-    Environment *environments[1] 
+    FloatEnvironment *environments[1];
     environments[0] = environment;
 #endif
 
@@ -185,7 +181,7 @@ void findClosest2(Environment *environment, float *matchingSet,
         long id = 0;
 #endif
 
-        Environment *env = environments[id];
+        FloatEnvironment *env = environments[id];
 
         clearEnv(env);
         int dim = env->dim;
@@ -212,7 +208,7 @@ void findClosest2(Environment *environment, float *matchingSet,
                 for(int y = 0; y < env->k; y++){
                     addEntry(environment, environments[x]->indexes[y], environments[x]->distances[y]);
                 }
-                cleanup(environments[x]);
+                floatCleanup(environments[x]);
             }
         }
     }
@@ -226,7 +222,7 @@ void findClosest2(Environment *environment, float *matchingSet,
 
 
 // parallel on inner loop -- doesn't go faster
-void findClosest3(Environment *environment, float *matchingSet, 
+void findClosestFloat3(FloatEnvironment *environment, float *matchingSet, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
 #ifdef _OPENMP
@@ -282,10 +278,7 @@ void findClosest3(Environment *environment, float *matchingSet,
 }
 
 
-
-
-
-void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, 
+void findClosestPacked(FloatEnvironment *environment, unsigned char *matchingSet, float *multipliers, 
                                 float *queryVector, int *responseSet, float *responseDists){
 
     clearEnv(environment);
@@ -306,7 +299,7 @@ void findClosestPacked(Environment *environment, unsigned char *matchingSet, flo
     }
 }
 
-void cleanup(Environment *environment){
+void floatCleanup(FloatEnvironment *environment){
     free(environment->indexes);
     free(environment->distances);
     free(environment);

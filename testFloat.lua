@@ -51,14 +51,10 @@ local N = similarityTable.public_vectors:size(1)
 local dim = similarityTable.public_vectors:size(2)
 local k = 10
 
-local dataTensor = getIntDataTensor(similarityTable)
+local dataTensor = getFloatDataTensor(similarityTable)
 
 print("starting")
-<<<<<<< HEAD
-local simFinder = similarity.init(dataTensor, k, N, dim)
-=======
-local simFinder = similarity.intinit(dataTensor, k, N, dim)
->>>>>>> 18096e65e14711a12028f98407498e5dfe43b02a
+local simFinder = similarity.floatinit(dataTensor, k, N, dim)
 print("initialized")
 
 print("running")
@@ -66,15 +62,15 @@ for i=N,N-10,-1 do
    local vector = dataTensor[i]
 
    local sttime = async.hrtime()
-   local responses = simFinder.findClosestInt(vector)
+   local responses = simFinder.findClosest(vector)
    local midtime = async.hrtime()
---   local responses2 = simFinder.findClosest2(vector)
+   local responses2 = simFinder.findClosest2(vector)
    local endtime = async.hrtime()
 
    print("COMPLETED", midtime - sttime, endtime - midtime)
 
    for j,response in ipairs(responses) do 
-      print(response[1], response[2]) --, response[1] == responses2[j][1])
+      print(response[1], response[2], response[1] == responses2[j][1])
    end
 end
 

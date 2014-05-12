@@ -7,28 +7,40 @@ local async = require 'async'
 
 ffi.cdef
 [[ 
-    typedef void Environment;
+    typedef void FloatEnvironment;
+    
+    typedef void IntEnvironment;
 
-    Environment *init(int k, int N, int dim);
+    FloatEnvironment *floatInit(int k, int N, int dim);
 
-    void findClosest(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
-   
-    void findClosest2(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+    void findClosestFloat(FloatEnvironment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
 
-    void findClosest3(Environment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
+    void findClosestFloat2(FloatEnvironment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
 
-    void findClosestPacked(Environment *environment, unsigned char *matchingSet, float *multipliers, float *queryVector, int *responseSet, float *responseDists);
+    void findClosestFloat3(FloatEnvironment *environment, float *matchingSet, float *queryVector, int *responseSet, float *responseDists);
 
-    void cleanup(Environment *environment);
-]]
+    void findClosestPacked(FloatEnvironment *environment, unsigned char *matchingSet, float *multipliers, 
+    float *queryVector, int *responseSet, float *responseDists);
+
+    void floatCleanup(FloatEnvironment *environment);
+
+    // Int Similarity Functions
+    IntEnvironment *intInit(int k, int N, int dim);
+
+    void findClosestInt(IntEnvironment *environment, int *matchingSet, int *queryVector, int *responseSet, int *responseDists);
+    
+    void findClosestInt2(IntEnvironment *environment, int *matchingSet, int *queryVector, int *responseSet, int *responseDists);
+
+    void intCleanup(IntEnvironment *environment);
+    ]]
 
 local similarity = {}
 
-similarity.init = function(dataTensor, k, N, dim)
+similarity.floatinit = function(dataTensor, k, N, dim)
 
    local clib = ffi.load("fastsimilarity")
 
-   local env = clib.init(k, N, dim)
+   local env = clib.floatInit(k, N, dim)
 
    local indexes = torch.IntTensor(k)
    local distances = torch.FloatTensor(k)
@@ -36,19 +48,99 @@ similarity.init = function(dataTensor, k, N, dim)
    local finder = {}
 
    finder.findClosest = function(queryVector)
-      clib.findClosest(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      clib.findClosestFloat(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
       local response = {}
       for i=1,k do
          if indexes[i] < 0 or indexes[i] > N then break end
 
          table.insert(response, {indexes[i], distances[i]})
       end
-       
+
+      return response
+   end
+
+
+   finder.findClosest2 = function(queryVector)
+      clib.findClosestFloat2(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+   
+   finder.findClosest3 = function(queryVector)
+      clib.findClosestFloat3(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+
+   finder.findClosestInt = function(queryVector)
+      clib.findClosestInt(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
       return response
    end
 
    return finder
 end
+
+similarity.intinit = function(dataTensor, k, N, dim)
+
+   local clib = ffi.load("fastsimilarity")
+
+   local env = clib.intInit(k, N, dim)
+
+   local indexes = torch.IntTensor(k)
+   local distances = torch.IntTensor(k)
+
+   local finder = {}
+
+   finder.findClosest = function(queryVector)
+      clib.findClosestInt(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+
+   finder.findClosest2 = function(queryVector)
+      clib.findClosestInt2(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+
+   return finder
+end
+
+
+
+
+
 
 return similarity
 
