@@ -76,7 +76,7 @@ void findClosestFloat(FloatEnvironment *environment, float *matchingSet,
     environments[0] = environment;
 
     for(int i = 1; i < maxthreads; i++){
-        environments[i] = init(environment->k, environment->N, environment->dim);
+        environments[i] = floatInit(environment->k, environment->N, environment->dim);
         clearEnv(environments[i]);
     }
 
@@ -162,7 +162,7 @@ void findClosestFloat2(FloatEnvironment *environment, float *matchingSet,
     environments[0] = environment;
 
     for(int i = 1; i < maxthreads; i++){
-        environments[i] = init(environment->k, environment->N, environment->dim);
+        environments[i] = floatInit(environment->k, environment->N, environment->dim);
         clearEnv(environments[i]);
     }
 

@@ -108,7 +108,7 @@ similarity.intinit = function(dataTensor, k, N, dim)
 
    local finder = {}
 
-   finder.findClosestInt = function(queryVector)
+   finder.findClosest = function(queryVector)
       clib.findClosestInt(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
       local response = {}
       for i=1,k do

@@ -75,7 +75,7 @@ void findClosestInt(IntEnvironment *environment, int *matchingSet,
     environments[0] = environment;
 
     for(int i = 1; i < maxthreads; i++){
-        environments[i] = init(environment->k, environment->N, environment->dim);
+        environments[i] = intInit(environment->k, environment->N, environment->dim);
         clearEnv(environments[i]);
     }
 
