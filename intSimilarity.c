@@ -119,16 +119,14 @@ void findClosestInt(IntEnvironment *environment, int *matchingSet,
                 __m128i vcompar2 = _mm_cmpgt_epi32(vnegdiff, vdiff);
                 __m128i vabsdiff1 = _mm_and_si128(vdiff, vcompar1);
                 __m128i vabsdiff2 = _mm_and_si128(vnegdiff, vcompar2);
-                __m128i vabsdiff2 = _mm_or_si128(vabsdiff1, vabsdiff2);
+                __m128i vabsdiff = _mm_or_si128(vabsdiff1, vabsdiff2);
                 vsum = _mm_add_epi32(vsum, vabsdiff);
             }
-            _mm_storeu_si128(distance,vsum); 
+            _mm_storeu_si128((__m128i *)distance,vsum); 
 
             // ALL DONE!
             //
             addEntry(env, i, distance[0] + distance[1] + distance[2] + distance[3]);
-
-            addEntry(env, i, distance);
         }
 
         // reduce
