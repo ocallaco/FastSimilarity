@@ -28,6 +28,8 @@ ffi.cdef
     IntEnvironment *intInit(int k, int N, int dim);
 
     void findClosestInt(IntEnvironment *environment, int *matchingSet, int *queryVector, int *responseSet, int *responseDists);
+    
+    void findClosestInt2(IntEnvironment *environment, int *matchingSet, int *queryVector, int *responseSet, int *responseDists);
 
     void intCleanup(IntEnvironment *environment);
     ]]
@@ -110,6 +112,18 @@ similarity.intinit = function(dataTensor, k, N, dim)
 
    finder.findClosest = function(queryVector)
       clib.findClosestInt(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
+      local response = {}
+      for i=1,k do
+         if indexes[i] < 0 or indexes[i] > N then break end
+
+         table.insert(response, {indexes[i], distances[i]})
+      end
+
+      return response
+   end
+
+   finder.findClosest2 = function(queryVector)
+      clib.findClosestInt2(env, torch.data(dataTensor), torch.data(queryVector), torch.data(indexes), torch.data(distances))
       local response = {}
       for i=1,k do
          if indexes[i] < 0 or indexes[i] > N then break end

@@ -64,13 +64,13 @@ for i=N,N-10,-1 do
    local sttime = async.hrtime()
    local responses = simFinder.findClosest(vector)
    local midtime = async.hrtime()
---   local responses2 = simFinder.findClosest2(vector)
+   local responses2 = simFinder.findClosest2(vector)
    local endtime = async.hrtime()
 
    print("COMPLETED", midtime - sttime, endtime - midtime)
 
    for j,response in ipairs(responses) do 
-      print(response[1], response[2]) --, response[1] == responses2[j][1])
+      print(response[1], response[2], response[1] == responses2[j][1])
    end
 end
 
