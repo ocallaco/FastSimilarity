@@ -106,14 +106,15 @@ void findClosestInt(IntEnvironment *environment, int *matchingSet,
 
             // SSE STUFF!
             __m128i vsum = _mm_set1_epi32(0);                        
+            __m128i zero = _mm_set1_epi32(0);
             long k;
             
             // I think k should be incrementing should be by 4s, but (possibly due to mem unaligned) it gets the wrong answer unless you do k += 1
             for (k = 0; k < dim; k += 4){                       
                 __m128i va = _mm_loadu_si128((__m128i*)&(matchingSet[startIndex + k]));
-                __m128i vb = _mm_loadu_si128((__m128i*)&(queryVector [k]);
+                __m128i vb = _mm_loadu_si128((__m128i*)&(queryVector [k]));
                 __m128i vdiff = _mm_sub_epi32(va, vb);
-                __m128i vnegdiff = _mm_sub_epi32(_mm_set1_epi32(0), vdiff);
+                __m128i vnegdiff = _mm_sub_epi32(zero, vdiff);
                 __m128i vabsdiff = _mm_max_epi32(vdiff, vnegdiff);
                 vsum = _mm_add_epi32(vsum, vabsdiff);
             }
