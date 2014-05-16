@@ -54,11 +54,7 @@ local k = 10
 local dataTensor = getIntDataTensor(similarityTable)
 
 print("starting")
-<<<<<<< HEAD
-local simFinder = similarity.init(dataTensor, k, N, dim)
-=======
 local simFinder = similarity.intinit(dataTensor, k, N, dim)
->>>>>>> 18096e65e14711a12028f98407498e5dfe43b02a
 print("initialized")
 
 print("running")
